@@ -40,10 +40,12 @@ public class Player : MonoBehaviour {
 
 	Vector3 movementForce = Vector3.zero;
 
-	Vector3 lastLocalPosition = Vector3.zero;
-	Quaternion lastLocalRotation = Quaternion.identity;
-	const float shakeVelocity = 0.2f;
-	const float shakeAngularVelocity = 20f;
+	Vector3 lastLocalPosition;
+	Quaternion lastLocalRotation;
+	const float shakeVelocity = 0.5f;
+	const float shakeAngularVelocity = 0.5f;
+	bool moving;
+	bool rotating;
 
 	float pitch = 0f;
 	const float maxPitch = 45f;
@@ -102,6 +104,13 @@ public class Player : MonoBehaviour {
 			rb.velocity = standingOn.orbAngVel * standingOn.orthoStartR;
 			lastVel = rb.velocity;
 			rb.angularVelocity = standingOn.rotAngVel * Planet.POENormal;
+
+			standingOnRb = standingOn.GetComponent<Rigidbody> ();
+
+			lastLocalPosition = standingOn.transform.InverseTransformPoint (transform.position);
+			lastLocalRotation = Quaternion.Inverse (standingOn.transform.rotation) * transform.rotation;
+
+			print ("set player");
 		}
 
 		blocks = new GameObject[blockNames.Length];
@@ -115,8 +124,6 @@ public class Player : MonoBehaviour {
 
 		UpdateUI ();
 
-		print ("set player");
-
 
 	}
 	
@@ -128,12 +135,14 @@ public class Player : MonoBehaviour {
 		UpdateMode ();
 		UpdateUI ();
 
-		//AntiShake ();
+		AntiShake ();
 	}
 
 	void FixedUpdate () {
-		accel = (rb.velocity - lastVel) / Time.fixedDeltaTime;
-		lastVel = rb.velocity;
+		Vector3 footPos = transform.position - 0.25f * transform.up;
+		Vector3 curVel = rb.GetPointVelocity (footPos);
+		accel = (curVel - lastVel) / Time.fixedDeltaTime;
+		lastVel = curVel;
 
 		Move ();
 	}
@@ -183,8 +192,15 @@ public class Player : MonoBehaviour {
 	}
 
 	void Move () {
-		
-		transform.RotateAround (transform.position, transform.up, Time.deltaTime * sensitivity * Input.GetAxis ("Look Horizontal"));
+
+		moving = false;
+		rotating = false;
+
+		float lookHorizontal = Input.GetAxis ("Look Horizontal");
+		if (lookHorizontal != 0) {
+			rotating = true;
+		}
+		transform.RotateAround (transform.position, transform.up, Time.deltaTime * sensitivity * lookHorizontal);
 		pitch -= Time.deltaTime * sensitivity * Input.GetAxis ("Look Vertical");
 		pitch = Mathf.Clamp (pitch, minPitch, maxPitch);
 		head.localEulerAngles = pitch * Vector3.right;
@@ -219,7 +235,7 @@ public class Player : MonoBehaviour {
 				standingOnRb = hit.rigidbody;
 
 				Vector3 footPos = transform.position - 0.25f * transform.up;
-				Vector3 velDifferential = rb.velocity - standingOnRb.GetPointVelocity (transform.position);
+				Vector3 velDifferential = rb.velocity - standingOnRb.GetPointVelocity (footPos);
 				float velDifferentialMag = velDifferential.magnitude;
 				//Vector3 velDifferentialNorm = velDifferential / velDifferentialMag;
 
@@ -239,6 +255,7 @@ public class Player : MonoBehaviour {
 						rb.velocity += jumpV * transform.up + dx * transform.right + dy * transform.forward;
 					}
 					if (dx != 0 || dy != 0) {
+						moving = true;
 						//rb.AddForce (transform.up);
 						//rb.AddForce (dx * transform.forward + dy * transform.right);
 
@@ -300,26 +317,20 @@ public class Player : MonoBehaviour {
 
 	void AntiShake () {
 		if (standing) {
-			Vector3 newLocalPosition = standingOnRb.transform.worldToLocalMatrix.MultiplyPoint (transform.position);
-			//print ((newLocalPosition - lastLocalPosition).magnitude / Time.fixedDeltaTime);
-			if ((newLocalPosition - lastLocalPosition).magnitude <= shakeVelocity * Time.fixedDeltaTime) {
-				transform.position = standingOnRb.transform.localToWorldMatrix.MultiplyPoint (lastLocalPosition);
-				//print ("antishake move");
+			Vector3 footPos = transform.position - 0.25f * transform.up;
+			//print ("v: " + (rb.velocity - standingOnRb.GetPointVelocity (footPos)).magnitude);
+			if (!moving && (rb.velocity - standingOnRb.GetPointVelocity (footPos)).magnitude <= shakeVelocity) {
+				transform.position = standingOnRb.transform.TransformPoint (lastLocalPosition);
 			} else {
-				print ("no anti shake move");
+				lastLocalPosition = standingOnRb.transform.InverseTransformPoint (transform.position);
 			}
-			lastLocalPosition = newLocalPosition;
-			Quaternion newLocalRotation = Quaternion.Inverse (standingOnRb.transform.rotation) * transform.rotation;
-			//print (Quaternion.Angle(newLocalRotation, lastLocalRotation) / Time.fixedDeltaTime);
-			if (Quaternion.Angle (newLocalRotation, lastLocalRotation) <= shakeAngularVelocity * Time.fixedDeltaTime) {
+
+			//print ("omega: " + (rb.angularVelocity - standingOnRb.angularVelocity).magnitude);
+			if (!rotating && (rb.angularVelocity - standingOnRb.angularVelocity).magnitude <= shakeAngularVelocity) {
 				transform.rotation = standingOnRb.transform.rotation * lastLocalRotation;
-				//print ("antishake rotate");
 			} else {
-				print ("no anti shake rotation");
+				lastLocalRotation = Quaternion.Inverse (standingOnRb.transform.rotation) * transform.rotation;
 			}
-			lastLocalRotation = newLocalRotation;
-			//print (standingOnRb.transform.worldToLocalMatrix.MultiplyPoint (transform.position));
-			//print (Quaternion.Inverse (standingOnRb.transform.rotation) * transform.rotation);
 		}
 	}
 
