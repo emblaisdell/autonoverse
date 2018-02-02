@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 public class Ship {
 
-	public const int memoryMapLength = byte.MaxValue;
+	public const int memoryMapLength = byte.MaxValue + 1;
 	public List<Block> blocks = new List<Block>();
 	public List<Block>[] memoryMap = new List<Block>[memoryMapLength];
 
