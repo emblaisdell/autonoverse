@@ -30,6 +30,7 @@ public class Player : MonoBehaviour {
 
 	bool standing = false;
 	Rigidbody standingOnRb = null;
+	Vector3 standingNormal;
 
 	Vector3 accel;
 	Vector3 avgForceDifferential = Vector3.zero;
@@ -135,7 +136,7 @@ public class Player : MonoBehaviour {
 		UpdateMode ();
 		UpdateUI ();
 
-		AntiShake ();
+		//AntiShake ();
 	}
 
 	void FixedUpdate () {
@@ -233,6 +234,7 @@ public class Player : MonoBehaviour {
 			    )) {
 				//print ("down hit");
 				standingOnRb = hit.rigidbody;
+				standingNormal = hit.normal;
 
 				Vector3 footPos = transform.position - 0.25f * transform.up;
 				Vector3 velDifferential = rb.velocity - standingOnRb.GetPointVelocity (footPos);
@@ -241,7 +243,7 @@ public class Player : MonoBehaviour {
 
 				if (velDifferentialMag <= maxStandVel) {
 					
-					transform.rotation = Quaternion.FromToRotation (transform.up, forceDifferentialNorm) * transform.rotation;
+					transform.rotation = Quaternion.FromToRotation (transform.up, standingNormal) * transform.rotation;
 					//rb.AddForce (-legDrag * velDifferentialNorm); // slow down
 					//Vector3 normal = forceDifferentialNorm;
 					//Vector3 torque = standTorque * Vector3.ClampMagnitude(Vector3.Cross(transform.up, normal), 1f);
@@ -309,12 +311,6 @@ public class Player : MonoBehaviour {
 
 	}
 
-	void RotateBlock () {
-		if (Input.GetAxisRaw("Rotate") > 0f) {
-
-		}
-	}
-
 	void AntiShake () {
 		if (standing) {
 			Vector3 footPos = transform.position - 0.25f * transform.up;
@@ -328,6 +324,7 @@ public class Player : MonoBehaviour {
 			//print ("omega: " + (rb.angularVelocity - standingOnRb.angularVelocity).magnitude);
 			if (!rotating && (rb.angularVelocity - standingOnRb.angularVelocity).magnitude <= shakeAngularVelocity) {
 				transform.rotation = standingOnRb.transform.rotation * lastLocalRotation;
+				transform.rotation = Quaternion.FromToRotation(transform.up, standingNormal) * transform.rotation;
 			} else {
 				lastLocalRotation = Quaternion.Inverse (standingOnRb.transform.rotation) * transform.rotation;
 			}
