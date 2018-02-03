@@ -10,7 +10,7 @@ public class Rotor : Block {
 
 	byte motorSpeed = 127;
 	float maxByte = (float)byte.MaxValue;
-	float maxSpeed = 5000f;
+	float maxSpeed = 500f;
 
 	override public int memoryMapSize {
 		get {
@@ -37,7 +37,7 @@ public class Rotor : Block {
 		joint.axis = transform.localRotation * Vector3.up;
 
 		JointMotor motor = joint.motor;
-		motor.force = 100f;
+		motor.force = 1000f;
 		motor.targetVelocity = maxSpeed * (((float)motorSpeed - 127f) / maxByte);
 		motor.freeSpin = false;
 		joint.motor = motor;

@@ -35,6 +35,7 @@ public class Clock : Block {
 			} else {
 				ticks = 0;
 			}
+			ship.Write (memoryMapPosition, ticks);
 			timer -= tickTime;
 		}
 	}
