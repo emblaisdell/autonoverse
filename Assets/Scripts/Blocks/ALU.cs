@@ -9,8 +9,6 @@ public class ALU : Block {
 	byte opCode = 0;
 	byte output = 0;
 
-	bool upToDate = false;
-
 	override public int memoryMapSize {
 		get {
 			return 4;
@@ -91,10 +89,6 @@ public class ALU : Block {
 		} else if (offset == 2) {
 			return opCode;
 		} else {
-			if (!upToDate) {
-				Calculate ();
-				upToDate = true;
-			}
 			return output;
 		}
 	}
@@ -108,7 +102,8 @@ public class ALU : Block {
 			} else if (offset == 2) {
 				opCode = value;
 			}
-			upToDate = false;
+			Calculate ();
+			ship.Write ((memoryMapPosition + 3) % Ship.memoryMapLength, output);
 		}
 	}
 

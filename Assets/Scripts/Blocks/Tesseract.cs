@@ -25,6 +25,10 @@ public class Tesseract : Block {
 		}
 	}
 
+	void Start () {
+		SaveAndLoadManager.SaveGame ("gamesave");
+	}
+
 	string GetPath() {
 		return Encoding.ASCII.GetString (filenameBytes);
 	}

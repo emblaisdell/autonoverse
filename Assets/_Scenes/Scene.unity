@@ -118,9 +118,9 @@ GameObject:
   - component: {fileID: 137248472}
   - component: {fileID: 137248471}
   - component: {fileID: 137248470}
-  - component: {fileID: 137248473}
   - component: {fileID: 137248469}
   - component: {fileID: 137248474}
+  - component: {fileID: 137248473}
   m_Layer: 0
   m_Name: Star
   m_TagString: Untagged

@@ -30,6 +30,7 @@ public class Ship {
 
 	public void AddBlock(Block block, int position) {
 		//System.Diagnostics.Debug.WriteLine (block.memoryMapSize);
+		block.memoryMapPosition = position;
 		blocks.Add(block);
 		for(int i=0; i<block.memoryMapSize; i++) {
 			int pos = (position + i) % memoryMapLength;
