@@ -21,7 +21,7 @@ public class Player : MonoBehaviour {
 	//movement constants
 	const float v = 10f;
 	const float F = 1f;
-	const float jumpV = 15f;
+	const float jumpV = 10f;
 	const float sensitivity = 100f;
 	const float stepSlope = 2f;
 	const float minStandForce = 1.5f;
