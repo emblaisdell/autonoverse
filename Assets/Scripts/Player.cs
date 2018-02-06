@@ -363,33 +363,42 @@ public class Player : MonoBehaviour {
 			}
 			if (Input.GetAxisRaw ("Rotate") > 0f) {
 				ghost.gameObject.SetActive (true);
+
+				Vector3 ghostPosition;
+				Quaternion ghostRotation;
+
+				if (hitTransform.CompareTag ("Surface")) {
+					ghostPosition = hit.point + 0.5f * hit.normal;
+					ghostRotation = Quaternion.FromToRotation (Vector3.up, hit.normal);
+				}
+				if (hitTransform.CompareTag ("Block")) {
+					ghostPosition = hitTransform.position + 1f * hit.normal;
+					Transform hitShipPart = hitTransform.parent;
+					ghostRotation = hitShipPart.rotation;
+				}
+
 				rotateTimerX += Time.deltaTime * Input.GetAxis ("Move Horizontal");
 				rotateTimerY += Time.deltaTime * Input.GetAxis ("Move Vertical");
 				if (rotateTimerX <= rotateTime) {
 					rotateTimerX += rotateTime;
-					blockRotation = Quaternion.Euler (0f, 90f, 0f) * blockRotation;
+					blockRotation = Quaternion.AngleAxis(90f, VectorUtil.ClosestDirection(transform.up, ghostRotation)) * blockRotation;
 				}
 				if (rotateTimerX >= rotateTime) {
 					rotateTimerX -= rotateTime;
-					blockRotation = Quaternion.Euler (0f, -90f, 0f) * blockRotation;
+					blockRotation = Quaternion.AngleAxis(-90f, VectorUtil.ClosestDirection(transform.up, ghostRotation)) * blockRotation;
 				}
 				if (rotateTimerY <= rotateTime) {
 					rotateTimerY += rotateTime;
-					blockRotation = Quaternion.Euler (90f, 0f, 0f) * blockRotation;
+					blockRotation = Quaternion.AngleAxis(-90f, VectorUtil.ClosestDirection(transform.right, ghostRotation)) * blockRotation;
 				}
 				if (rotateTimerY >= rotateTime) {
 					rotateTimerY -= rotateTime;
-					blockRotation = Quaternion.Euler (-90f, 0f, 0f) * blockRotation;
+					blockRotation = Quaternion.AngleAxis(90f, VectorUtil.ClosestDirection(transform.right, ghostRotation)) * blockRotation;
 				}
-				if (hitTransform.CompareTag ("Surface")) {
-					ghost.position = hit.point + 0.5f * hit.normal;
-					ghost.rotation = Quaternion.FromToRotation (Vector3.up, hit.normal) * blockRotation;
-				}
-				if (hitTransform.CompareTag ("Block")) {
-					ghost.position = hitTransform.position + 1f * hit.normal;
-					Transform hitShipPart = hitTransform.parent;
-					ghost.rotation = hitShipPart.rotation * blockRotation;
-				}
+
+				ghost.position = ghostPosition;
+				ghost.rotation = ghostRotation * blockRotation;
+
 			} else {
 				ghost.gameObject.SetActive (false);
 			}
