@@ -64,7 +64,7 @@ public class Editor : Block {
 
 	}
 
-	override public void Interact (char c) {
+	public void Interact (char c) {
 		c = char.ToLower (c);
 		if (c == '0') {
 			int pos = (offset + posY)%Ship.memoryMapLength;
@@ -107,6 +107,4 @@ public class Editor : Block {
 			}
 		}
 	}
-
-	override public void InteractSlider (Player player, float value) {}
 }

@@ -10,6 +10,4 @@ public abstract class Block : MonoBehaviour {
 
 	public abstract byte Read (int offset);
 	public abstract void Write (int offset, byte value);
-	public abstract void Interact (char c);
-	public abstract void InteractSlider (Player player, float value);
 }

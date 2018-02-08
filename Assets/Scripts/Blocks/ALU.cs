@@ -106,8 +106,4 @@ public class ALU : Block {
 			ship.Write ((memoryMapPosition + 3) % Ship.memoryMapLength, output);
 		}
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

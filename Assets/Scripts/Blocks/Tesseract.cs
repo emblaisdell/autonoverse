@@ -72,8 +72,4 @@ public class Tesseract : Block {
 			contentPos = value;
 		}
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

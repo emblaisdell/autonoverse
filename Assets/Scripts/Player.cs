@@ -22,7 +22,7 @@ public class Player : MonoBehaviour {
 	const float v = 10f;
 	const float F = 1f;
 	const float jumpV = 10f;
-	const float sensitivity = 100f;
+	const float angVel = 100f;
 	const float stepSlope = 2f;
 	const float minStandForce = 1.5f;
 	const float maxStandVel = 10f;
@@ -83,6 +83,12 @@ public class Player : MonoBehaviour {
 	int mode = 0;
 	const int numModes = 2;
 
+	bool sitDown = false; // is button down
+	bool sitting = false;
+	Sittable sittingIn;
+	Transform sittingInTransform;
+	Rigidbody sittingInRigidbody;
+
 	// Use this for initialization
 	void Start () {
 		head = transform.GetChild (0);
@@ -135,6 +141,8 @@ public class Player : MonoBehaviour {
 
 		UpdateMode ();
 		UpdateUI ();
+
+		SitUpdate ();
 
 		//AntiShake ();
 	}
@@ -197,118 +205,122 @@ public class Player : MonoBehaviour {
 		moving = false;
 		rotating = false;
 
-		float lookHorizontal = Input.GetAxis ("Look Horizontal");
-		if (lookHorizontal != 0) {
-			rotating = true;
-		}
-		transform.RotateAround (transform.position, transform.up, Time.deltaTime * sensitivity * lookHorizontal);
-		pitch -= Time.deltaTime * sensitivity * Input.GetAxis ("Look Vertical");
+		pitch -= Time.deltaTime * angVel * Input.GetAxis ("Look Vertical");
 		pitch = Mathf.Clamp (pitch, minPitch, maxPitch);
 		head.localEulerAngles = pitch * Vector3.right;
 
-		float dx = 0f;
-		float dy = 0f;
+		if (!sitting) {
 
-		if (Input.GetAxisRaw ("Rotate") == 0f) {
-			dx = v * Input.GetAxis ("Move Horizontal");
-			dy = v * Input.GetAxis ("Move Vertical");
-		}
+			float lookHorizontal = Input.GetAxis ("Look Horizontal");
+			if (lookHorizontal != 0) {
+				rotating = true;
+			}
+			transform.RotateAround (transform.position, transform.up, Time.deltaTime * angVel * lookHorizontal);
 
-		Vector3 forceDifferential = rb.mass * accel - grav.net - movementForce;
-		avgForceDifferential = ALPHA * forceDifferential + (1f - ALPHA) * avgForceDifferential;
-		float forceDifferentialMag = avgForceDifferential.magnitude;
-		Vector3 forceDifferentialNorm = avgForceDifferential / forceDifferentialMag;
-		Debug.DrawRay (transform.position, forceDifferential, Color.blue);
-		Debug.DrawRay (transform.position, avgForceDifferential, Color.cyan);
-		Debug.DrawRay (transform.position, forceDifferentialNorm, Color.white);
+			float dx = 0f;
+			float dy = 0f;
 
-		standing = false;
+			if (Input.GetAxisRaw ("Rotate") == 0f) {
+				dx = v * Input.GetAxis ("Move Horizontal");
+				dy = v * Input.GetAxis ("Move Vertical");
+			}
 
-		//print ("start");
-		if (forceDifferentialMag >= minStandForce) {
-			//print ("sufficient gravity");
-			RaycastHit hit;
-			if (Physics.Raycast (
-					new Ray (transform.position + 0.1f * transform.up, -forceDifferentialNorm),
-				    out hit
-			    )) {
-				//print ("down hit");
-				standingOnRb = hit.rigidbody;
-				standingNormal = hit.normal;
+			Vector3 forceDifferential = rb.mass * accel - grav.net - movementForce;
+			avgForceDifferential = ALPHA * forceDifferential + (1f - ALPHA) * avgForceDifferential;
+			float forceDifferentialMag = avgForceDifferential.magnitude;
+			Vector3 forceDifferentialNorm = avgForceDifferential / forceDifferentialMag;
+			Debug.DrawRay (transform.position, forceDifferential, Color.blue);
+			Debug.DrawRay (transform.position, avgForceDifferential, Color.cyan);
+			Debug.DrawRay (transform.position, forceDifferentialNorm, Color.white);
 
-				Vector3 footPos = transform.position - 0.25f * transform.up;
-				Vector3 velDifferential = rb.velocity - standingOnRb.GetPointVelocity (footPos);
-				float velDifferentialMag = velDifferential.magnitude;
-				//Vector3 velDifferentialNorm = velDifferential / velDifferentialMag;
+			standing = false;
 
-				if (velDifferentialMag <= maxStandVel) {
+			//print ("start");
+			if (forceDifferentialMag >= minStandForce) {
+				//print ("sufficient gravity");
+				RaycastHit hit;
+				if (Physics.Raycast (
+					    new Ray (transform.position + 0.1f * transform.up, -forceDifferentialNorm),
+					    out hit
+				    )) {
+					//print ("down hit");
+					standingOnRb = hit.rigidbody;
+					standingNormal = hit.normal;
+
+					Vector3 footPos = transform.position - 0.25f * transform.up;
+					Vector3 velDifferential = rb.velocity - standingOnRb.GetPointVelocity (footPos);
+					float velDifferentialMag = velDifferential.magnitude;
+					//Vector3 velDifferentialNorm = velDifferential / velDifferentialMag;
+
+					if (velDifferentialMag <= maxStandVel) {
 					
-					transform.rotation = Quaternion.FromToRotation (transform.up, standingNormal) * transform.rotation;
-					//rb.AddForce (-legDrag * velDifferentialNorm); // slow down
-					//Vector3 normal = forceDifferentialNorm;
-					//Vector3 torque = standTorque * Vector3.ClampMagnitude(Vector3.Cross(transform.up, normal), 1f);
-					rb.angularVelocity = standingOnRb.angularVelocity;
-					//Debug.DrawRay (transform.position, torque);
-					//rb.AddTorque (torque); // stand up
-					//transform.up = normal;
-					//print ("standing");
+						transform.rotation = Quaternion.FromToRotation (transform.up, standingNormal) * transform.rotation;
+						//rb.AddForce (-legDrag * velDifferentialNorm); // slow down
+						//Vector3 normal = forceDifferentialNorm;
+						//Vector3 torque = standTorque * Vector3.ClampMagnitude(Vector3.Cross(transform.up, normal), 1f);
+						rb.angularVelocity = standingOnRb.angularVelocity;
+						//Debug.DrawRay (transform.position, torque);
+						//rb.AddTorque (torque); // stand up
+						//transform.up = normal;
+						//print ("standing");
 
-					if (Input.GetAxisRaw ("Jump") > 0f) {
-						rb.velocity += jumpV * transform.up + dx * transform.right + dy * transform.forward;
-					}
-					if (dx != 0 || dy != 0) {
-						moving = true;
-						//rb.AddForce (transform.up);
-						//rb.AddForce (dx * transform.forward + dy * transform.right);
+						if (Input.GetAxisRaw ("Jump") > 0f) {
+							rb.velocity += jumpV * transform.up + dx * transform.right + dy * transform.forward;
+						}
+						if (dx != 0 || dy != 0) {
+							moving = true;
+							//rb.AddForce (transform.up);
+							//rb.AddForce (dx * transform.forward + dy * transform.right);
 
 
-						Vector3 movement = Time.fixedDeltaTime * (dx * transform.right + dy * transform.forward);
-						float speed = movement.magnitude;
-						movement += stepSlope * speed * transform.up;
+							Vector3 movement = Time.fixedDeltaTime * (dx * transform.right + dy * transform.forward);
+							float speed = movement.magnitude;
+							movement += stepSlope * speed * transform.up;
 
-						RaycastHit moveHit;
-						if (Physics.Raycast (
-							    new Ray (transform.position + movement, -transform.up),
-							    out moveHit,
-							    2f * stepSlope * speed
-						    )) {
-							Collider[] collisions = Physics.OverlapCapsule (
-								                        moveHit.point + 0.25f * transform.up,
-								                        moveHit.point + 0.75f * transform.up,
-								                        0.25f
-							                        );
-							bool movable = true;
-							foreach (Collider collision in collisions) {
-								if (collision != GetComponent<Collider> () && collision.attachedRigidbody != standingOnRb) {
-									movable = false;
-									break;
+							RaycastHit moveHit;
+							if (Physics.Raycast (
+								    new Ray (transform.position + movement, -transform.up),
+								    out moveHit,
+								    2f * stepSlope * speed
+							    )) {
+								Collider[] collisions = Physics.OverlapCapsule (
+									                        moveHit.point + 0.25f * transform.up,
+									                        moveHit.point + 0.75f * transform.up,
+									                        0.25f
+								                        );
+								bool movable = true;
+								foreach (Collider collision in collisions) {
+									if (collision != GetComponent<Collider> () && collision.attachedRigidbody != standingOnRb) {
+										movable = false;
+										break;
+									}
+								}
+								if (movable) {
+									transform.position = moveHit.point;// + 0.1f * transform.up;
 								}
 							}
-							if (movable) {
-								transform.position = moveHit.point;// + 0.1f * transform.up;
-							}
-						} else {
-							//print ("miss");
 						}
+
+						standing = true;
 					}
-
-					standing = true;
-				} else {
-					//print ("ground too fast");
 				}
-
-			} else {
-				//print ("no ground");
+			} 
+			if (!standing) {
+				movementForce = F * (dx * transform.right + dy * transform.forward);
+				rb.AddForce (movementForce);
 			}
-		} else {
-			//print ("not enough gravity");
 		}
+	}
 
-		if (!standing) {
-			movementForce = F * (dx * transform.right + dy * transform.forward);
-			rb.AddForce (movementForce);
+	void SitUpdate () {
+		if (sitting) {
+			print ("sitting");
+
+			rb.MovePosition(sittingInTransform.position + Time.deltaTime * sittingInRigidbody.velocity);
+			rb.MoveRotation(sittingInTransform.rotation);
+
+			sittingIn.SetAxes (Input.GetAxis("Look Horizontal"), Input.GetAxis("Move Horizontal"), Input.GetAxis("Move Vertical"));
 		}
-
 	}
 
 	void AntiShake () {
@@ -419,9 +431,9 @@ public class Player : MonoBehaviour {
 				   placeDist
 			   )) {
 				Block hitBlock = hit.collider.transform.GetComponent<Block>();
-				if (hitBlock != null) {
+				if (hitBlock != null && hitBlock is Typable) {
 					foreach (char c in Input.inputString) {
-						hitBlock.Interact (c);
+						((Typable)hitBlock).Type (c);
 					}
 				}
 			}
@@ -435,10 +447,42 @@ public class Player : MonoBehaviour {
 				placeDist
 			)) {
 				Block hitBlock = hit.collider.transform.GetComponent<Block>();
-				if (hitBlock != null) {
-					hitBlock.InteractSlider (this, slider);
+				if (hitBlock != null && hitBlock is Slidable) {
+					((Slidable)hitBlock).Slide (this, slider);
 				}
 			}
+		}
+		if (Input.GetAxisRaw ("Sit") > 0f) {
+			if (!sitDown) {
+			sitDown = true;
+				if (sitting) {
+					sitting = false;
+					rb.isKinematic = false;
+					rb.detectCollisions = true;
+				} else {
+					RaycastHit hit;
+					if (Physics.Raycast (
+						   new Ray (head.position, head.forward),
+						   out hit,
+						   placeDist
+					   )) {
+						Transform hitTransform = hit.collider.transform;
+						Block hitBlock = hitTransform.GetComponent<Block> ();
+						if (hitBlock != null && hitBlock is Sittable) {
+							sitting = true;
+							sittingIn = (Sittable)hitBlock;
+							sittingInTransform = hitTransform.GetChild (0);
+							sittingInRigidbody = hit.rigidbody;
+							rb.isKinematic = true;
+							rb.detectCollisions = false;
+							transform.position = sittingInTransform.position;
+							transform.rotation = sittingInTransform.rotation;
+						}
+					}
+				}
+			}
+		} else {
+			sitDown = false;
 		}
 	}
 

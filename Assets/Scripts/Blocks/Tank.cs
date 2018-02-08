@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Tank : Block {
+public class Tank : Block, Slidable {
 
 	const float time = 0.01f;
 	float timer = 1f; 
@@ -27,9 +27,7 @@ public class Tank : Block {
 
 	override public void Write(int offset, byte value){}
 
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {
+	public void Slide (Player player, float value) {
 		timer += Time.fixedDeltaTime * Mathf.Abs(value);
 
 		while (timer > time) {
