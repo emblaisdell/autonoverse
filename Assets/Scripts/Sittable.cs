@@ -1,6 +1,6 @@
 ﻿
 public interface Sittable {
 
-	void SetAxes(float lookX, float lookY, float moveX, float move);
+	void SetAxes(float lookX, float moveX, float move);
 
 }
