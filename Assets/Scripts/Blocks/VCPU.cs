@@ -14,8 +14,4 @@ public class VCPU : Block {
 	}
 
 	override public void Write(int offset, byte value) {}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

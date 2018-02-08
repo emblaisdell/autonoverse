@@ -56,8 +56,4 @@ public class Processor : Block {
 			condition = value;
 		}
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

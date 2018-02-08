@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Keyboard : Block {
+public class Keyboard : Block, Typable {
 
 	private Queue<byte> chars = new Queue<byte> ();
 
@@ -22,9 +22,7 @@ public class Keyboard : Block {
 
 	override public void Write(int offset, byte value){}
 
-	override public void Interact (char c) {
+	public void Type (char c) {
 		chars.Enqueue ((byte)c);
 	}
-
-	override public void InteractSlider (Player player, float value) {}
 }

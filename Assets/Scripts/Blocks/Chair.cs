@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Chair : Block {
+public class Chair : Block, Sittable {
+
+	float yaw = 0f;
 
 	override public int memoryMapSize {
 		get {
@@ -16,7 +18,7 @@ public class Chair : Block {
 
 	override public void Write(int offset, byte value){}
 
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
+	public void SetAxes (float lookX, float lookY, float moveX, float moveY) {
+		// TODO: Implement
+	}
 }

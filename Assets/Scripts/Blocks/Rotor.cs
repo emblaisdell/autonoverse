@@ -55,8 +55,4 @@ public class Rotor : Block {
 		motor.targetVelocity = maxSpeed * (((float)motorSpeed - 127f) / maxByte);
 		joint.motor = motor;
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

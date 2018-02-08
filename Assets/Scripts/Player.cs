@@ -419,9 +419,9 @@ public class Player : MonoBehaviour {
 				   placeDist
 			   )) {
 				Block hitBlock = hit.collider.transform.GetComponent<Block>();
-				if (hitBlock != null) {
+				if (hitBlock != null && hitBlock is Typable) {
 					foreach (char c in Input.inputString) {
-						hitBlock.Interact (c);
+						((Typable)hitBlock).Type (c);
 					}
 				}
 			}
@@ -435,8 +435,8 @@ public class Player : MonoBehaviour {
 				placeDist
 			)) {
 				Block hitBlock = hit.collider.transform.GetComponent<Block>();
-				if (hitBlock != null) {
-					hitBlock.InteractSlider (this, slider);
+				if (hitBlock != null && hitBlock is Slidable) {
+					((Slidable)hitBlock).Slide (this, slider);
 				}
 			}
 		}

@@ -46,8 +46,4 @@ public class Transciever : Block {
 			SendMessage (value);
 		}
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }

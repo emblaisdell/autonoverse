@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Lever : Block {
+public class Lever : Block, Slidable {
 
 	const float speed = 1f;
 	const float range = 0.7f;
@@ -30,9 +30,7 @@ public class Lever : Block {
 
 	override public void Write(int offset, byte value){}
 
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float sliderValue) {
+	public void Slide (Player player, float sliderValue) {
 		floatValue = Mathf.Clamp01 (floatValue + speed * Time.fixedDeltaTime * sliderValue);
 		value = (byte)(maxValue * floatValue);
 		ship.Write (memoryMapPosition, value);

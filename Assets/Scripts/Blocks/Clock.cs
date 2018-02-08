@@ -23,10 +23,6 @@ public class Clock : Block {
 		timer = 0f;
 	}
 
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
-
 	void Update () {
 		timer += Time.deltaTime;
 		while (timer >= tickTime) {

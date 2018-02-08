@@ -32,10 +32,6 @@ public class Thruster : Block {
 		thrust = maxThrust * ((float)value) / maxValue;
 	}
 
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
-
 	void FixedUpdate () {
 		rb.AddForceAtPosition (thrust * shipPart.up, transform.position);
 	}

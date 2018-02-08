@@ -78,8 +78,4 @@ public class Piston : Block {
 
 		joint.targetPosition = farPos * (((float)pos) / maxByte) * Vector3.right;
 	}
-
-	override public void Interact (char c) {}
-
-	override public void InteractSlider (Player player, float value) {}
 }
