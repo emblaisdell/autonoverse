@@ -15,7 +15,7 @@ public class Chair : Block, Sittable {
 
 	override public int memoryMapSize {
 		get {
-			return 0;
+			return 2;
 		}
 	}
 
@@ -24,7 +24,7 @@ public class Chair : Block, Sittable {
 	}
 
 	override public byte Read(int offset) {
-		return 0;
+		return values[offset];
 	}
 
 	override public void Write(int offset, byte value){}
@@ -33,9 +33,8 @@ public class Chair : Block, Sittable {
 		yaw += Time.fixedDeltaTime * angVel * lookX;
 		seat.localRotation = Quaternion.Euler (0f, yaw, 0f);
 
-		values [0] = (byte)(moveX / maxByte);
-		values [1] = (byte)(moveY / maxByte);
-
+		values [0] = (byte)(0.5f*(moveX+1f) * maxByte);
+		values [1] = (byte)(0.5f*(moveY+1f) * maxByte);
 
 	}
 }

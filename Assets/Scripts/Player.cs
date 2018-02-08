@@ -314,12 +314,10 @@ public class Player : MonoBehaviour {
 
 	void SitUpdate () {
 		if (sitting) {
-			print ("sitting");
-
 			rb.MovePosition(sittingInTransform.position + Time.deltaTime * sittingInRigidbody.velocity);
 			rb.MoveRotation(sittingInTransform.rotation);
 
-			sittingIn.SetAxes (Input.GetAxis("Look Horizontal"), Input.GetAxis("Move Horizontal"), Input.GetAxis("Move Vertical"));
+			sittingIn.SetAxes (Input.GetAxisRaw("Look Horizontal"), Input.GetAxisRaw("Move Horizontal"), Input.GetAxisRaw("Move Vertical"));
 		}
 	}
 
